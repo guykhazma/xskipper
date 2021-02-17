@@ -13,6 +13,7 @@ import io.xskipper.status.{RefreshResult, Status}
 import io.xskipper.utils.Utils
 import io.xskipper.{Xskipper, XskipperException}
 import org.apache.hadoop.fs.Path
+import org.apache.iceberg.spark.source.SparkTable
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql.execution.datasources.v2.{DataSourceV2ScanRelation, FileTable}
 import org.apache.spark.sql.execution.datasources.{HadoopFsRelation, LogicalRelation}
@@ -201,10 +202,12 @@ class IndexBuilder(spark: SparkSession, uri: String, xskipper: Xskipper)
   def build() : DataFrame = {
     // get the dataframe of the table
     val df = Utils.getTable(spark, uri)
-    // Indexing of hive tables is available only for partitioned hive tables
-    val schemaPartitions = Utils.getPartitionColumns(df)
-    if (schemaPartitions.isEmpty) {
-      throw new XskipperException(s"""${Status.HIVE_NON_PARTITIONED_TABLE}""")
+    if (Utils.isBuiltInSparkDataSource(df)) {
+      // Indexing of hive tables is available only for partitioned hive tables
+      val schemaPartitions = Utils.getPartitionColumns(df)
+      if (schemaPartitions.isEmpty) {
+        throw new XskipperException(s"""${Status.HIVE_NON_PARTITIONED_TABLE}""")
+      }
     }
     build(df)
   }
@@ -319,6 +322,9 @@ class IndexBuilder(spark: SparkSession, uri: String, xskipper: Xskipper)
         (hfs.fileFormat.toString, hfs.options)
       case _@DataSourceV2ScanRelation(table: FileTable, _, _) =>
         (table.formatName, table.properties().asScala.toMap)
+      case l@DataSourceV2ScanRelation(table: SparkTable, _, _) =>
+        // TODO: use the relevant reader with relevant parameters
+        ("parquet", Map.empty[String, String])
     }(0)
 
 

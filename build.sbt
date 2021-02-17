@@ -14,6 +14,7 @@ libraryDependencies ++= Seq (
   "org.apache.spark" %% "spark-sql" % sparkVersion.value % "provided",
   "org.apache.spark" %% "spark-core" % sparkVersion.value % "provided",
   "org.apache.spark" %% "spark-catalyst" % sparkVersion.value % "provided",
+  "org.apache.iceberg" % "iceberg-spark3-runtime" % "0.11.0" % "provided",
 
   // test dependencies
   "org.scalatest" %% "scalatest" % "3.0.5" % "test",
@@ -21,6 +22,7 @@ libraryDependencies ++= Seq (
   "org.apache.spark" %% "spark-core" % sparkVersion.value % "test",
   "org.apache.spark" %% "spark-sql" % sparkVersion.value % "test",
   "org.apache.spark" %% "spark-hive" % sparkVersion.value % "test",
+  "org.apache.iceberg" % "iceberg-spark3-runtime" % "0.11.0" % "test",
   "com.googlecode.json-simple" % "json-simple" % "1.1" % "test"
 )
 

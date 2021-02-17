@@ -174,6 +174,14 @@ object Utils extends Logging {
     partitionSchema.map(field => field.name.toLowerCase(Locale.ROOT)).toSet
   }
 
+  def isBuiltInSparkDataSource(df: DataFrame): Boolean = {
+    df.queryExecution.optimizedPlan match {
+      case LogicalRelation(_: HadoopFsRelation, _, _, _) => true
+      case DataSourceV2ScanRelation(_, _: FileScan, _) => true
+      case _ => false
+    }
+  }
+
   /**
     * Returns the [[DataFrame]] associated with the given table identifier
     *
@@ -183,11 +191,6 @@ object Utils extends Logging {
     */
   def getTable(spark: SparkSession, tableIdentifier: String) : DataFrame = {
     try {
-      // verify the table is not a view - indexing on views is not available
-      val tbl = spark.catalog.getTable(tableIdentifier)
-      if (tbl.tableType == CatalogTableType.VIEW.name) {
-        throw new XskipperException(s"""${Status.INDEX_VIEW_ERROR}""")
-      }
       spark.table(tableIdentifier)
     }
     catch {

@@ -12,7 +12,9 @@ import io.xskipper.index.metadata.MetadataType
 import io.xskipper.index.{Index, IndexField, MinMaxIndex}
 import io.xskipper.metadatastore._
 import io.xskipper.utils.Utils
-import org.apache.hadoop.fs.FileStatus
+import org.apache.hadoop.fs.{FileStatus, Path}
+import org.apache.iceberg.FindFiles
+import org.apache.iceberg.spark.source.SparkTable
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql.execution.datasources.v2.{DataSourceV2ScanRelation, FileTable}
 import org.apache.spark.sql.execution.datasources.{HadoopFsRelation, LogicalRelation}
@@ -20,6 +22,7 @@ import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.apache.spark.util.SizeEstimator
 
+import collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.parallel.ForkJoinTaskSupport
 import scala.concurrent.Await
@@ -40,6 +43,13 @@ object MetadataProcessor {
         hfs.location.listFiles(Seq.empty, Seq.empty).flatMap { part =>
           part.files
         }
+      // Iceberg integration
+      case l@DataSourceV2ScanRelation(sparkTable: SparkTable, _, _) =>
+        FindFiles.in(sparkTable.table()).collect().asScala.map(dataFile => {
+          new FileStatus(dataFile.fileSizeInBytes(), false, 0, 0,
+            0, 0, null,
+            null, null, new Path(dataFile.path().toString))
+        })
       case DataSourceV2ScanRelation(table: FileTable, _, _) =>
         // not using allFiles since it returns also empty files which are not used
         // since Spark only calls list files during query processing

@@ -42,9 +42,9 @@ case class ValueListFilter(col : String) extends BaseMetadataFilter {
         // being use for String which is internal only for Spark use
         Some(values.toArray, expr.dataType)
       case EqualTo(expr: Expression, v: Literal) if isValidExpr(expr) =>
-        Some(Array(v.value), expr.dataType)
+        Some(Array(v.value), v.dataType)
       case EqualTo(v: Literal, expr: Expression) if isValidExpr(expr) =>
-        Some(Array(v.value), expr.dataType)
+        Some(Array(v.value), v.dataType)
       case _ => None
     }
 
