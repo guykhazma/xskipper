@@ -23,6 +23,9 @@ object IcebergRunner {
       .config("spark.sql.catalog.local", "org.apache.iceberg.spark.SparkCatalog")
       .config("spark.sql.catalog.local.type" , "hadoop")
       .config("spark.sql.catalog.local.warehouse", "/tmp/iceberg")
+      // Setting the external file filter fully qualified name
+      .config("spark.hadoop.iceberg.read.fileFilter.impl",
+        "io.xskipper.search.IcebergDataSkippingFileFilter")
       .getOrCreate()
 
     val reindex = false
