@@ -1,0 +1,25 @@
+# Copyright 2021 IBM Corp.
+# SPDX-License-Identifier: Apache-2.0
+
+name: "CheckCommit"
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release:
+    name: check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Xskipper repository
+        uses: actions/checkout@v2
+      - name: Commit
+        run: |
+          git clean -f
+          git config --global user.email "abc@gmail.com"
+          git config --global user.name "check"
+          # dummy change
+          echo echo $(date) >> a.txt
+          git add a.txt
+          git commit -m "dummy commit"
+          git push
